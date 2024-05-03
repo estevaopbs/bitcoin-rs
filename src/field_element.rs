@@ -1,21 +1,5 @@
 use std::ops::{Add, Div, Mul, Sub};
 
-fn mod_pow(mut base: i32, mut exp: i32, modulus: i32) -> i32 {
-    if modulus == 1 {
-        return 0;
-    }
-    let mut result = 1;
-    base = base % modulus;
-    while exp > 0 {
-        if exp % 2 == 1 {
-            result = result * base % modulus;
-        }
-        exp = exp >> 1;
-        base = base * base % modulus;
-    }
-    result
-}
-
 #[derive(Debug)]
 pub struct FieldElement {
     num: i32,
@@ -29,10 +13,20 @@ impl FieldElement {
         }
         FieldElement { num, prime }
     }
-    fn pow(&self, exponent: i32) -> FieldElement {
-        let n = exponent % (self.prime - 1);
-        let num = self.num.pow(n as u32) % self.prime;
-        FieldElement::new(num, self.prime)
+    fn pow(&self, mut exp: i32) -> FieldElement {
+        if self.prime == 1 {
+            return FieldElement::new(0, 1);
+        }
+        let mut result = 1;
+        let mut base = self.num % self.prime;
+        while exp > 0 {
+            if exp % 2 == 1 {
+                result = result * base % self.prime;
+            }
+            exp = exp >> 1;
+            base = base * base % self.prime;
+        }
+        FieldElement::new(result, self.prime)
     }
 }
 
@@ -93,8 +87,7 @@ impl Div for FieldElement {
         if self.prime != other.prime {
             panic!("Cannot divide two numbers in different Fields");
         }
-        let other_inverse =
-            FieldElement::new(mod_pow(other.num, self.prime - 2, self.prime), self.prime);
+        let other_inverse = other.pow(self.prime - 2);
         self * other_inverse
     }
 }
