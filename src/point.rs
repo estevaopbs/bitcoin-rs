@@ -9,7 +9,6 @@ struct Point {
 }
 
 impl Point {
-    #[allow(dead_code)]
     fn new(x: Option<f64>, y: Option<f64>, a: f64, b: f64) -> Self {
         if x.is_none() && y.is_none() {
             return Self { x, y, a, b };
