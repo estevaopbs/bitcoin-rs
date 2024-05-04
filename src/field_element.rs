@@ -32,6 +32,14 @@ impl FieldElement {
         }
         Self::new(result, self.prime)
     }
+
+    pub fn num(&self) -> i32 {
+        self.num
+    }
+
+    pub fn prime(&self) -> i32 {
+        self.prime
+    }
 }
 
 impl PartialEq for FieldElement {

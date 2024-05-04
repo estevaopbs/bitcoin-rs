@@ -23,6 +23,22 @@ impl Point {
         }
         Self { x, y, a, b }
     }
+
+    pub fn x(&self) -> Option<f64> {
+        self.x
+    }
+
+    pub fn y(&self) -> Option<f64> {
+        self.y
+    }
+
+    pub fn a(&self) -> f64 {
+        self.a
+    }
+
+    pub fn b(&self) -> f64 {
+        self.b
+    }
 }
 
 impl PartialEq for Point {
