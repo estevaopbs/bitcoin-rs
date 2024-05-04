@@ -7,15 +7,19 @@ pub struct FieldElement {
 }
 
 impl FieldElement {
-    fn new(num: i32, prime: i32) -> FieldElement {
+    fn new(num: i32, prime: i32) -> Self {
         if num >= prime || num < 0 {
             panic!("Num {} not in field range 0 to {}", num, prime - 1);
         }
-        FieldElement { num, prime }
+        Self { num, prime }
     }
-    fn pow(&self, mut exp: i32) -> FieldElement {
+
+    fn pow(&self, mut exp: i32) -> Self {
         if self.prime == 1 {
-            return FieldElement::new(0, 1);
+            return Self::new(0, 1);
+        }
+        if exp < 0 {
+            exp = self.prime - 1 + exp % (self.prime - 1);
         }
         let mut result = 1;
         let mut base = self.num % self.prime;
@@ -26,35 +30,36 @@ impl FieldElement {
             exp = exp >> 1;
             base = base * base % self.prime;
         }
-        FieldElement::new(result, self.prime)
+        Self::new(result, self.prime)
     }
 }
 
 impl PartialEq for FieldElement {
-    fn eq(&self, other: &FieldElement) -> bool {
+    fn eq(&self, other: &Self) -> bool {
         self.num == other.num && self.prime == other.prime
     }
-    fn ne(&self, other: &FieldElement) -> bool {
+
+    fn ne(&self, other: &Self) -> bool {
         !self.eq(other)
     }
 }
 
 impl Add for FieldElement {
-    type Output = FieldElement;
+    type Output = Self;
 
-    fn add(self, other: FieldElement) -> FieldElement {
+    fn add(self, other: Self) -> Self::Output {
         if self.prime != other.prime {
             panic!("Cannot add two numbers in different Fields");
         }
         let num = (self.num + other.num) % self.prime;
-        FieldElement::new(num, self.prime)
+        Self::new(num, self.prime)
     }
 }
 
 impl Sub for FieldElement {
-    type Output = FieldElement;
+    type Output = Self;
 
-    fn sub(self, other: FieldElement) -> FieldElement {
+    fn sub(self, other: Self) -> Self::Output {
         if self.prime != other.prime {
             panic!("Cannot subtract two numbers in different Fields");
         }
@@ -64,26 +69,26 @@ impl Sub for FieldElement {
         } else {
             num % self.prime
         };
-        FieldElement::new(num, self.prime)
+        Self::new(num, self.prime)
     }
 }
 
 impl Mul for FieldElement {
-    type Output = FieldElement;
+    type Output = Self;
 
-    fn mul(self, other: FieldElement) -> FieldElement {
+    fn mul(self, other: Self) -> Self::Output {
         if self.prime != other.prime {
             panic!("Cannot multiply two numbers in different Fields");
         }
         let num = (self.num * other.num) % self.prime;
-        FieldElement::new(num, self.prime)
+        Self::new(num, self.prime)
     }
 }
 
 impl Div for FieldElement {
-    type Output = FieldElement;
+    type Output = Self;
 
-    fn div(self, other: FieldElement) -> FieldElement {
+    fn div(self, other: Self) -> Self::Output {
         if self.prime != other.prime {
             panic!("Cannot divide two numbers in different Fields");
         }
@@ -154,5 +159,8 @@ mod tests {
         let b = FieldElement::new(18, 31);
         let c = FieldElement::new(16, 31);
         assert_eq!(a.pow(5) * b, c);
+        let a = FieldElement::new(7, 13);
+        let b = FieldElement::new(8, 13);
+        assert_eq!(a.pow(-3), b);
     }
 }
