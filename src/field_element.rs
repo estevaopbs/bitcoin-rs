@@ -33,10 +33,12 @@ impl FieldElement {
         Self::new(result, self.prime)
     }
 
+    #[allow(dead_code)]
     pub fn num(&self) -> i32 {
         self.num
     }
 
+    #[allow(dead_code)]
     pub fn prime(&self) -> i32 {
         self.prime
     }

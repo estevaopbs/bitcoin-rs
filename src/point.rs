@@ -24,18 +24,22 @@ impl Point {
         Self { x, y, a, b }
     }
 
+    #[allow(dead_code)]
     pub fn x(&self) -> Option<f64> {
         self.x
     }
 
+    #[allow(dead_code)]
     pub fn y(&self) -> Option<f64> {
         self.y
     }
 
+    #[allow(dead_code)]
     pub fn a(&self) -> f64 {
         self.a
     }
 
+    #[allow(dead_code)]
     pub fn b(&self) -> f64 {
         self.b
     }
