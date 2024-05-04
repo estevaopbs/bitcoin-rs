@@ -7,14 +7,14 @@ pub struct FieldElement {
 }
 
 impl FieldElement {
-    fn new(num: i32, prime: i32) -> Self {
+    pub fn new(num: i32, prime: i32) -> Self {
         if num >= prime || num < 0 {
             panic!("Num {} not in field range 0 to {}", num, prime - 1);
         }
         Self { num, prime }
     }
 
-    fn pow(&self, mut exp: i32) -> Self {
+    pub fn pow(&self, mut exp: i32) -> Self {
         if self.prime == 1 {
             return Self::new(0, 1);
         }

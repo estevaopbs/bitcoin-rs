@@ -1,7 +1,7 @@
 use std::ops::Add;
 
 #[derive(Debug, Clone)]
-struct Point {
+pub struct Point {
     x: Option<f64>,
     y: Option<f64>,
     a: f64,
@@ -9,7 +9,7 @@ struct Point {
 }
 
 impl Point {
-    fn new(x: Option<f64>, y: Option<f64>, a: f64, b: f64) -> Self {
+    pub fn new(x: Option<f64>, y: Option<f64>, a: f64, b: f64) -> Self {
         if x.is_none() && y.is_none() {
             return Self { x, y, a, b };
         }
