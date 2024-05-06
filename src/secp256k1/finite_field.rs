@@ -1,50 +1,39 @@
-use bnum::types::I512;
-use once_cell::sync::Lazy;
+use bnum::types::U512;
 use std::ops::{Add, Div, Mul, Sub};
 
-static PRIME: Lazy<I512> = Lazy::new(|| {
-    I512::from_str_radix(
-        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",
-        16,
-    )
-    .unwrap()
-});
+static PRIME: U512 = U512::parse_str_radix(
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",
+    16,
+);
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub struct FieldElement {
-    num: I512,
+    pub(crate) num: U512,
 }
 
 impl FieldElement {
-    pub fn new(num: I512) -> Result<Self, String> {
-        if num >= *PRIME || num < I512::from(0) {
-            return Err(format!(
-                "Num {num} not in field range 0 to {}",
-                *PRIME - I512::from(1)
-            )
-            .to_string());
-        }
-        Ok(Self { num })
+    pub fn new(num: U512) -> Self {
+        Self { num: num % PRIME }
     }
 
-    pub fn pow(&self, mut exp: I512) -> Self {
-        if exp < I512::from(0) {
-            exp = *PRIME - I512::from(1) + exp % (*PRIME - I512::from(1));
+    pub fn pow(&self, mut exp: U512, is_negative: bool) -> Self {
+        if is_negative {
+            exp = PRIME - U512::ONE - exp % (PRIME - U512::ONE);
         }
-        let mut result = I512::from(1);
-        let mut base = self.num % *PRIME;
-        while exp > I512::from(0) {
-            if exp % I512::from(2) == I512::from(1) {
-                result = result * base % *PRIME;
+        let mut result = U512::ONE;
+        let mut base = self.num % PRIME;
+        while exp > U512::ZERO {
+            if exp % U512::TWO == U512::ONE {
+                result *= base % PRIME;
             }
-            exp = exp >> 1;
-            base = base * base % *PRIME;
+            exp >>= 1;
+            base = base * base % PRIME;
         }
-        Self::new(result).unwrap()
+        Self::new(result)
     }
 
     #[allow(dead_code)]
-    pub fn num(&self) -> I512 {
+    pub fn num(&self) -> U512 {
         self.num
     }
 }
@@ -53,8 +42,8 @@ impl Add for FieldElement {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let num = (self.num + rhs.num) % *PRIME;
-        Self::new(num).unwrap()
+        let num = (self.num + rhs.num) % PRIME;
+        Self::new(num)
     }
 }
 
@@ -63,12 +52,12 @@ impl Sub for FieldElement {
 
     fn sub(self, rhs: Self) -> Self::Output {
         let num = self.num - rhs.num;
-        let num = if num < I512::from(0) {
-            num % *PRIME + *PRIME
+        let num = if num < U512::ZERO {
+            num % PRIME + PRIME
         } else {
-            num % *PRIME
+            num % PRIME
         };
-        Self::new(num).unwrap()
+        Self::new(num)
     }
 }
 
@@ -76,8 +65,8 @@ impl Mul for FieldElement {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self::Output {
-        let num = (self.num * rhs.num) % *PRIME;
-        Self::new(num).unwrap()
+        let num = (self.num * rhs.num) % PRIME;
+        Self::new(num)
     }
 }
 
@@ -85,7 +74,7 @@ impl Div for FieldElement {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self::Output {
-        let other_inverse = rhs.pow(*PRIME - I512::from(2));
+        let other_inverse = rhs.pow(PRIME - U512::TWO, false);
         self * other_inverse
     }
 }

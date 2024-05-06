@@ -1,19 +1,31 @@
 use crate::secp256k1::finite_field::FieldElement;
-use bnum::types::I512;
-use once_cell::sync::Lazy;
+use bnum::types::U512;
 use std::ops::{Add, AddAssign, Mul};
 
-static ORDER: Lazy<I512> = Lazy::new(|| {
-    I512::from_str_radix(
-        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
-        16,
-    )
-    .unwrap()
-});
+static ORDER: U512 = U512::parse_str_radix(
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
+    16,
+);
 
-static A: Lazy<FieldElement> = Lazy::new(|| FieldElement::new(I512::from(0)).unwrap());
+static A: FieldElement = FieldElement { num: U512::ZERO };
 
-static B: Lazy<FieldElement> = Lazy::new(|| FieldElement::new(I512::from(7)).unwrap());
+static B: FieldElement = FieldElement { num: U512::SEVEN };
+
+#[allow(dead_code)]
+static GENERATOR: Point = Point {
+    x: Some(FieldElement {
+        num: U512::parse_str_radix(
+            "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
+            16,
+        ),
+    }),
+    y: Some(FieldElement {
+        num: U512::parse_str_radix(
+            "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",
+            16,
+        ),
+    }),
+};
 
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub struct Point {
@@ -31,7 +43,7 @@ impl Point {
         }
         let x_value = x.unwrap();
         let y_value = y.unwrap();
-        if y_value.pow(I512::from(2)) != x_value.pow(I512::from(3)) + *A * x_value + *B {
+        if y_value.pow(U512::TWO, false) != x_value.pow(U512::THREE, false) + A * x_value + B {
             return Err(format!(
                 "({:?}, {:?}) is not on the curve",
                 x_value, y_value
@@ -70,17 +82,17 @@ impl Add for Point {
         }
         let (x3, y3) = if x1 != x2 {
             let s = (y2 - y1) / (x2 - x1);
-            let x3 = s.pow(I512::from(2)) - x1 - x2;
+            let x3 = s.pow(U512::TWO, false) - x1 - x2;
             let y3 = s * (x1 - x3) - y1;
             (x3, y3)
         } else if self == rhs {
-            if y1 == FieldElement::new(I512::from(0)).unwrap() {
+            if y1 == FieldElement::new(U512::ZERO) {
                 return Self::new(None, None).unwrap();
             }
-            let field_2 = FieldElement::new(I512::from(2)).unwrap();
-            let field_3 = FieldElement::new(I512::from(3)).unwrap();
-            let s = (field_3 * x1.pow(I512::from(2)) + *A) / (field_2 * y1);
-            let x3 = s.pow(I512::from(2)) - field_2 * x1;
+            let field_2 = FieldElement::new(U512::TWO);
+            let field_3 = FieldElement::new(U512::THREE);
+            let s = (field_3 * x1.pow(U512::TWO, false) + A) / (field_2 * y1);
+            let x3 = s.pow(U512::TWO, false) - field_2 * x1;
             let y3 = s * (x1 - x3) - y1;
             (x3, y3)
         } else {
@@ -96,21 +108,32 @@ impl AddAssign<Point> for Point {
     }
 }
 
-impl Mul<I512> for Point {
+impl Mul<U512> for Point {
     type Output = Self;
 
-    fn mul(self, rhs: I512) -> Self::Output {
+    fn mul(self, rhs: U512) -> Self::Output {
         let mut coef = rhs;
-        coef %= *ORDER;
+        coef %= ORDER;
         let mut current = self;
         let mut result = Self::new(None, None).unwrap();
-        while coef > I512::from(0) {
-            if coef & I512::from(1) == I512::from(1) {
+        while coef > U512::ZERO {
+            if coef & U512::ONE == U512::ONE {
                 result += current;
             }
             current += current;
             coef >>= 1;
         }
         result
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_generator_order() {
+        println!("{:?}", GENERATOR * ORDER);
+        assert_eq!(GENERATOR * ORDER, Point::new(None, None).unwrap());
     }
 }
