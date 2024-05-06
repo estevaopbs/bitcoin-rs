@@ -1,4 +1,4 @@
-use crate::secp256k1::finite_field::FieldElement;
+use crate::secp256k1::FieldElement;
 use bnum::types::U512;
 use std::ops::{Add, AddAssign, Mul};
 
