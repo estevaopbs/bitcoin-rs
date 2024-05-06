@@ -1,7 +1,7 @@
 use bnum::types::U512;
 use std::ops::{Add, Div, Mul, Sub};
 
-static PRIME: U512 = U512::parse_str_radix(
+const PRIME: U512 = U512::parse_str_radix(
     "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",
     16,
 );

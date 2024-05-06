@@ -2,17 +2,17 @@ use crate::secp256k1::FieldElement;
 use bnum::types::U512;
 use std::ops::{Add, AddAssign, Mul};
 
-static ORDER: U512 = U512::parse_str_radix(
+const ORDER: U512 = U512::parse_str_radix(
     "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
     16,
 );
 
-static A: FieldElement = FieldElement { num: U512::ZERO };
+const A: FieldElement = FieldElement { num: U512::ZERO };
 
-static B: FieldElement = FieldElement { num: U512::SEVEN };
+const B: FieldElement = FieldElement { num: U512::SEVEN };
 
 #[allow(dead_code)]
-static GENERATOR: Point = Point {
+const GENERATOR: Point = Point {
     x: Some(FieldElement {
         num: U512::parse_str_radix(
             "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
