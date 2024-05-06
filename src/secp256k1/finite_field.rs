@@ -27,7 +27,7 @@ impl FieldElement {
                 result *= base % PRIME;
             }
             exp >>= 1;
-            base = base * base % PRIME;
+            base *= base % PRIME;
         }
         Self::new(result)
     }
