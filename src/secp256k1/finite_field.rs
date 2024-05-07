@@ -73,7 +73,7 @@ impl Sub for FieldElement {
 
     fn sub(self, rhs: Self) -> Self::Output {
         let num = if self.num < rhs.num {
-            self.num + PRIME - rhs.num
+            self.num + (PRIME - rhs.num)
         } else {
             self.num - rhs.num
         };
