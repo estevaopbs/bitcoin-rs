@@ -1,4 +1,5 @@
 use bnum::types::{U256, U512};
+use bnum::BTryFrom;
 use std::ops::{Add, Div, Mul, Sub};
 
 const PRIME: U256 = U256::parse_str_radix(
@@ -12,13 +13,11 @@ const PRIME_512: U512 = U512::parse_str_radix(
 );
 
 fn u512_to_u256(num: U512) -> U256 {
-    U256::from_digits((&num.digits()[..4]).try_into().unwrap())
+    <U256 as BTryFrom<U512>>::try_from(num).unwrap()
 }
 
 fn u256_to_u512(num: U256) -> U512 {
-    let mut digits_512 = [0; 8];
-    digits_512[..4].copy_from_slice(&num.digits()[..4]);
-    U512::from_digits(digits_512)
+    <U512 as BTryFrom<U256>>::try_from(num).unwrap()
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]
