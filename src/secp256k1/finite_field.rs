@@ -62,10 +62,7 @@ impl Add for FieldElement {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let mut num = self.num_512() + u256_to_u512(rhs.num);
-        if num >= PRIME_512 {
-            num -= PRIME_512;
-        }
+        let num = (self.num_512() + u256_to_u512(rhs.num)) % PRIME_512;
         Self::new(u512_to_u256(num))
     }
 }
