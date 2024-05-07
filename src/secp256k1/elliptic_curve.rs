@@ -1,26 +1,26 @@
 use crate::secp256k1::FieldElement;
-use bnum::types::U512;
+use bnum::types::U256;
 use std::ops::{Add, AddAssign, Mul};
 
-const ORDER: U512 = U512::parse_str_radix(
+const ORDER: U256 = U256::parse_str_radix(
     "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
     16,
 );
 
-const A: FieldElement = FieldElement { num: U512::ZERO };
+const A: FieldElement = FieldElement { num: U256::ZERO };
 
-const B: FieldElement = FieldElement { num: U512::SEVEN };
+const B: FieldElement = FieldElement { num: U256::SEVEN };
 
 #[allow(dead_code)]
 const GENERATOR: Point = Point {
     x: Some(FieldElement {
-        num: U512::parse_str_radix(
+        num: U256::parse_str_radix(
             "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
             16,
         ),
     }),
     y: Some(FieldElement {
-        num: U512::parse_str_radix(
+        num: U256::parse_str_radix(
             "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",
             16,
         ),
@@ -43,7 +43,7 @@ impl Point {
         }
         let x_value = x.unwrap();
         let y_value = y.unwrap();
-        if y_value.pow(U512::TWO, false) != x_value.pow(U512::THREE, false) + A * x_value + B {
+        if y_value.pow(U256::TWO, false) != x_value.pow(U256::THREE, false) + A * x_value + B {
             return Err(format!(
                 "({:?}, {:?}) is not on the curve",
                 x_value, y_value
@@ -82,17 +82,17 @@ impl Add for Point {
         }
         let (x3, y3) = if x1 != x2 {
             let s = (y2 - y1) / (x2 - x1);
-            let x3 = s.pow(U512::TWO, false) - x1 - x2;
+            let x3 = s.pow(U256::TWO, false) - x1 - x2;
             let y3 = s * (x1 - x3) - y1;
             (x3, y3)
         } else if self == rhs {
-            if y1 == FieldElement::new(U512::ZERO) {
+            if y1 == FieldElement::new(U256::ZERO) {
                 return Self::new(None, None).unwrap();
             }
-            let field_2 = FieldElement::new(U512::TWO);
-            let field_3 = FieldElement::new(U512::THREE);
-            let s = (field_3 * x1.pow(U512::TWO, false) + A) / (field_2 * y1);
-            let x3 = s.pow(U512::TWO, false) - field_2 * x1;
+            let field_2 = FieldElement::new(U256::TWO);
+            let field_3 = FieldElement::new(U256::THREE);
+            let s = (field_3 * x1.pow(U256::TWO, false) + A) / (field_2 * y1);
+            let x3 = s.pow(U256::TWO, false) - field_2 * x1;
             let y3 = s * (x1 - x3) - y1;
             (x3, y3)
         } else {
@@ -108,16 +108,16 @@ impl AddAssign<Point> for Point {
     }
 }
 
-impl Mul<U512> for Point {
+impl Mul<U256> for Point {
     type Output = Self;
 
-    fn mul(self, rhs: U512) -> Self::Output {
+    fn mul(self, rhs: U256) -> Self::Output {
         let mut coef = rhs;
         coef %= ORDER;
         let mut current = self;
         let mut result = Self::new(None, None).unwrap();
-        while coef > U512::ZERO {
-            if coef & U512::ONE == U512::ONE {
+        while coef > U256::ZERO {
+            if coef & U256::ONE == U256::ONE {
                 result += current;
             }
             current += current;
