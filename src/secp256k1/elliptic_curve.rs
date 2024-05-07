@@ -7,8 +7,6 @@ const ORDER: U256 = U256::parse_str_radix(
     16,
 );
 
-const A: FieldElement = FieldElement { num: U256::ZERO };
-
 const B: FieldElement = FieldElement { num: U256::SEVEN };
 
 #[allow(dead_code)]
@@ -43,7 +41,7 @@ impl Point {
         }
         let x_value = x.unwrap();
         let y_value = y.unwrap();
-        if y_value.pow(U256::TWO, false) != x_value.pow(U256::THREE, false) + A * x_value + B {
+        if y_value.pow(U256::TWO, false) != x_value.pow(U256::THREE, false) + B {
             return Err(format!(
                 "({:?}, {:?}) is not on the curve",
                 x_value, y_value
@@ -91,7 +89,7 @@ impl Add for Point {
             }
             let field_2 = FieldElement::new(U256::TWO);
             let field_3 = FieldElement::new(U256::THREE);
-            let s = (field_3 * x1.pow(U256::TWO, false) + A) / (field_2 * y1);
+            let s = (field_3 * x1.pow(U256::TWO, false)) / (field_2 * y1);
             let x3 = s.pow(U256::TWO, false) - field_2 * x1;
             let y3 = s * (x1 - x3) - y1;
             (x3, y3)
