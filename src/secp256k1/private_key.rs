@@ -24,6 +24,11 @@ impl PrivateKey {
     }
 
     #[allow(dead_code)]
+    pub fn point(&self) -> Point {
+        self.point
+    }
+
+    #[allow(dead_code)]
     pub fn sign(&self, z: U256) -> Signature {
         let k = self.deterministic_k(z);
         let r = (Point::G * k).x().unwrap().num();
