@@ -3,10 +3,7 @@ use crate::secp256k1::{FieldElement, Point, Signature};
 use bnum::types::U256;
 use digest::generic_array::GenericArray;
 use hmac::{Hmac, Mac};
-use rand::rngs::OsRng;
-use rand::RngCore;
 use sha2::Sha256;
-use std::convert::TryInto;
 
 #[derive(Debug)]
 pub struct PrivateKey {
@@ -28,9 +25,7 @@ impl PrivateKey {
 
     #[allow(dead_code)]
     pub fn sign(&self, z: U256) -> Signature {
-        let mut rand_array = [0u8; 32];
-        OsRng.fill_bytes(rand_array.as_mut());
-        let k = U256::from_radix_le(&rand_array, 256).unwrap();
+        let k = self.deterministic_k(z);
         let r = (Point::G * k).x().unwrap().num();
         let k_inv = mod_pow(k, Point::N - U256::TWO, false, Point::N);
         let mut s = (z + r * self.secret.num()) * k_inv % Point::N;
