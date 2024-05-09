@@ -1,6 +1,5 @@
 macro_rules! signature {
     ($name:ident, $field_type:ty, $num_type:ty) => {
-
         #[derive(Debug)]
         pub struct $name {
             r: $field_type,
@@ -12,7 +11,6 @@ macro_rules! signature {
                 Self { r, s }
             }
 
-            #[allow(dead_code)]
             pub fn from_values(r: $num_type, s: $num_type) -> Self {
                 Self::new(<$field_type>::new(r), <$field_type>::new(s))
             }

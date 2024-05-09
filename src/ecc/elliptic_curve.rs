@@ -11,7 +11,6 @@ macro_rules! point {
 
             pub const B: Lazy<$field_type> = Lazy::new(|| <$field_type>::new($b));
 
-            #[allow(dead_code)]
             pub const G: Lazy<Self> = Lazy::new(|| Self::from_values($gx, $gy).unwrap());
 
             pub const N: Lazy<$num_type> = Lazy::new(|| $n);
@@ -47,17 +46,14 @@ macro_rules! point {
                 })
             }
 
-            #[allow(dead_code)]
             pub fn from_values(x: $num_type, y: $num_type) -> Result<Self, String> {
                 Self::new(Some(<$field_type>::new(x)), Some(<$field_type>::new(y)))
             }
 
-            #[allow(dead_code)]
             pub fn x(&self) -> Option<$field_type> {
                 self.x
             }
 
-            #[allow(dead_code)]
             pub fn y(&self) -> Option<$field_type> {
                 self.y
             }
@@ -66,7 +62,6 @@ macro_rules! point {
                 self.x.is_none()
             }
 
-            #[allow(dead_code)]
             pub fn verify(&self, z: $num_type, sig: $signatre_type) -> bool {
                 let s_inv = <$field_type>::mod_pow(
                     sig.s().num(),
