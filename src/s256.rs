@@ -1,51 +1,82 @@
-use crate::helper::mod_pow;
-use crate::secp256k1::{FieldElement, Point, Signature};
-use bnum::types::U256;
+use bnum::types::{U256, U512};
+use bnum::BTryFrom;
 use digest::generic_array::GenericArray;
 use hmac::{Hmac, Mac};
+use once_cell::sync::Lazy;
 use sha2::Sha256;
+use std::ops::{Add, AddAssign, Div, Mul, Sub};
+
+field_element!(
+    S256Field,
+    U256,
+    U512,
+    U256::parse_str_radix(
+        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",
+        16,
+    )
+);
+
+signature!(S256Signature, S256Field, U256);
+
+point!(
+    S256Point,
+    S256Field,
+    S256Signature,
+    U256,
+    U256::ZERO,
+    U256::SEVEN,
+    U256::parse_str_radix(
+        "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
+        16,
+    ),
+    U256::parse_str_radix(
+        "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",
+        16,
+    ),
+    U256::parse_str_radix(
+        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
+        16,
+    )
+);
 
 #[derive(Debug)]
-pub struct PrivateKey {
-    secret: FieldElement,
-    #[allow(dead_code)]
-    point: Point,
+pub struct S256PrivateKey {
+    secret: S256Field,
+    point: S256Point,
 }
 
-impl PrivateKey {
-    #[allow(dead_code)]
-    pub fn new(secret: FieldElement, point: Point) -> Self {
-        Self { secret, point }
+impl S256PrivateKey {
+    pub fn new(secret: S256Field) -> Self {
+        Self {
+            secret,
+            point: *S256Point::G * secret.num(),
+        }
     }
 
-    #[allow(dead_code)]
-    pub fn secret(&self) -> FieldElement {
+    pub fn secret(&self) -> S256Field {
         self.secret
     }
 
-    #[allow(dead_code)]
-    pub fn point(&self) -> Point {
+    pub fn point(&self) -> S256Point {
         self.point
     }
 
-    #[allow(dead_code)]
-    pub fn sign(&self, z: U256) -> Signature {
+    pub fn sign(&self, z: U256) -> S256Signature {
         let k = self.deterministic_k(z);
-        let r = (Point::G * k).x().unwrap().num();
-        let k_inv = mod_pow(k, Point::N - U256::TWO, false, Point::N);
-        let mut s = (z + r * self.secret.num()) * k_inv % Point::N;
-        if s > Point::N / U256::TWO {
-            s = Point::N - s;
+        let r = (*S256Point::G * k).x().unwrap().num();
+        let k_inv = S256Field::mod_pow(k, *S256Point::N - U256::TWO, false, *S256Point::N);
+        let mut s = (z + r * self.secret.num()) * k_inv % *S256Point::N;
+        if s > *S256Point::N / U256::TWO {
+            s = *S256Point::N - s;
         }
-        Signature::new(r, s)
+        S256Signature::from_values(r, s)
     }
 
-    #[allow(dead_code)]
     fn deterministic_k(&self, mut z: U256) -> U256 {
         let k = b"\x00".repeat(32);
         let v = b"\x01".repeat(32);
-        if z > Point::N {
-            z -= Point::N;
+        if z > *S256Point::N {
+            z -= *S256Point::N;
         }
         let z_bytes = z.to_be_bytes();
         let secret_bytes = self.secret.num().to_be_bytes();
@@ -66,7 +97,7 @@ impl PrivateKey {
             v_.update(&v[..]);
             v = v_.finalize().into_bytes();
             let candidate = U256::from_be_bytes(v.try_into().unwrap());
-            if candidate >= U256::ONE && candidate < Point::N {
+            if candidate >= U256::ONE && candidate < *S256Point::N {
                 return candidate;
             }
             k_ = Hmac::<Sha256>::new(GenericArray::from_slice(&k));
