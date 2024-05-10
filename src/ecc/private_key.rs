@@ -1,5 +1,5 @@
 macro_rules! private_key {
-    ($name:ident, $field_type:ty, $point_type:ty, $sig_type:ty, $num_type:ty, $bnum_type:ty, $vec_size:expr, $hasher:ty) => {
+    ($name:ident, $field_type:ty, $sig_type:ty, $point_type:ty, $num_type:ty, $bnum_type:ty, $vec_size:expr, $hasher:ty) => {
         #[derive(Debug)]
         pub struct $name {
             secret: $field_type,

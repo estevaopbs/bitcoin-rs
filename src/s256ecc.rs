@@ -41,8 +41,8 @@ point!(
 private_key!(
     S256PrivateKey,
     S256Field,
-    S256Point,
     S256Signature,
+    S256Point,
     U256,
     U1024,
     32,
