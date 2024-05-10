@@ -1,2 +1,2 @@
 mod ecc;
-mod s256;
+mod s256ecc;

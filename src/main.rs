@@ -1,6 +1,6 @@
 #[macro_use]
 mod ecc;
-mod s256;
+mod s256ecc;
 mod tests;
 
 fn main() {

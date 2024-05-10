@@ -1,6 +1,5 @@
 macro_rules! field_element {
     ($name:ident, $num_type:ty, $bnum_type:ty, $prime_val:expr) => {
-
         #[derive(PartialEq, Debug, Clone, Copy)]
         pub struct $name {
             num: $num_type,
@@ -46,12 +45,14 @@ macro_rules! field_element {
             ) -> $num_type {
                 if is_negative {
                     let mut big_exp = Self::to_big(exp);
-                    big_exp = *Self::BIG_PRIME - <$bnum_type>::ONE - big_exp % (*Self::BIG_PRIME - <$bnum_type>::ONE);
+                    big_exp = *Self::BIG_PRIME
+                        - <$bnum_type>::ONE
+                        - big_exp % (*Self::BIG_PRIME - <$bnum_type>::ONE);
                     exp = Self::from_big(big_exp);
                 }
                 let mut result = <$bnum_type>::ONE;
                 let mut base = Self::to_big(base);
-                
+
                 let modulus = Self::to_big(modulus);
                 while exp > <$num_type>::ZERO {
                     if exp % <$num_type>::TWO == <$num_type>::ONE {

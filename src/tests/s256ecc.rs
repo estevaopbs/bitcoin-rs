@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::s256::{S256Field, S256Point, S256PrivateKey, S256Signature};
+    use crate::s256ecc::{S256Point, S256PrivateKey, S256Signature};
     use bnum::types::U256;
     use rand::rngs::OsRng;
     use rand::RngCore;

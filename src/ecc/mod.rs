@@ -4,3 +4,5 @@ mod elliptic_curve;
 mod finite_field;
 #[macro_use]
 mod signature;
+#[macro_use]
+mod private_key;
