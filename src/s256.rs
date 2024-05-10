@@ -1,6 +1,7 @@
-use bnum::types::{U256, U512};
+use bnum::types::{U1024, U256, U512};
 use bnum::BTryFrom;
 use digest::generic_array::GenericArray;
+use digest::Update;
 use hmac::{Hmac, Mac};
 use once_cell::sync::Lazy;
 use sha2::Sha256;
@@ -53,6 +54,10 @@ impl S256PrivateKey {
         }
     }
 
+    pub fn from_value(secret: U256) -> Self {
+        Self::new(S256Field::new(secret))
+    }
+
     pub fn secret(&self) -> S256Field {
         self.secret
     }
@@ -65,7 +70,14 @@ impl S256PrivateKey {
         let k = self.deterministic_k(z);
         let r = (*S256Point::G * k).x().unwrap().num();
         let k_inv = S256Field::mod_pow(k, *S256Point::N - U256::TWO, false, *S256Point::N);
-        let mut s = (z + r * self.secret.num()) * k_inv % *S256Point::N;
+        let mut s = <U256 as BTryFrom<U1024>>::try_from(
+            (<U1024 as BTryFrom<U256>>::try_from(z).unwrap()
+                + <U1024 as BTryFrom<U256>>::try_from(r).unwrap()
+                    * <U1024 as BTryFrom<U256>>::try_from(self.secret.num()).unwrap())
+                * <U1024 as BTryFrom<U256>>::try_from(k_inv).unwrap()
+                % <U1024 as BTryFrom<U256>>::try_from(*S256Point::N).unwrap(),
+        )
+        .unwrap();
         if s > *S256Point::N / U256::TWO {
             s = *S256Point::N - s;
         }
@@ -80,32 +92,46 @@ impl S256PrivateKey {
         }
         let z_bytes = z.to_be_bytes();
         let secret_bytes = self.secret.num().to_be_bytes();
-        let mut k_ = Hmac::<Sha256>::new(GenericArray::from_slice(&k));
-        k_.update(&[&v[..], &[0u8], &secret_bytes[..], &z_bytes[..]].concat());
-        let mut k = k_.finalize().into_bytes();
-        let mut v_ = Hmac::<Sha256>::new(GenericArray::from_slice(&k));
-        v_.update(&v[..]);
-        let mut v = v_.finalize().into_bytes();
-        k_ = Hmac::<Sha256>::new(GenericArray::from_slice(&k));
-        k_.update(&[&v[..], &[0u8], &secret_bytes[..], &z_bytes[..]].concat());
-        k = k_.finalize().into_bytes();
-        v_ = Hmac::<Sha256>::new(GenericArray::from_slice(&k));
-        v_.update(&v[..]);
-        v = v_.finalize().into_bytes();
+        let mut k = Hmac::<Sha256>::new_from_slice(&k)
+            .unwrap()
+            .chain_update(&[&v[..], b"\x00", &secret_bytes[..], &z_bytes[..]].concat())
+            .finalize()
+            .into_bytes();
+        let mut v = Hmac::<Sha256>::new_from_slice(&k)
+            .unwrap()
+            .chain_update(&v[..])
+            .finalize()
+            .into_bytes();
+        k = Hmac::<Sha256>::new_from_slice(&k)
+            .unwrap()
+            .chain_update(&[&v[..], b"\x01"].concat())
+            .finalize()
+            .into_bytes();
+        v = Hmac::<Sha256>::new_from_slice(&k)
+            .unwrap()
+            .chain_update(&v[..])
+            .finalize()
+            .into_bytes();
         loop {
-            v_ = Hmac::<Sha256>::new(GenericArray::from_slice(&k));
-            v_.update(&v[..]);
-            v = v_.finalize().into_bytes();
+            v = Hmac::<Sha256>::new_from_slice(&k)
+                .unwrap()
+                .chain_update(&v[..])
+                .finalize()
+                .into_bytes();
             let candidate = U256::from_be_bytes(v.try_into().unwrap());
             if candidate >= U256::ONE && candidate < *S256Point::N {
                 return candidate;
             }
-            k_ = Hmac::<Sha256>::new(GenericArray::from_slice(&k));
-            k_.update(&[&v[..], &[0u8]].concat());
-            k = k_.finalize().into_bytes();
-            v_ = Hmac::<Sha256>::new(GenericArray::from_slice(&k));
-            v_.update(&v[..]);
-            v = v_.finalize().into_bytes();
+            k = Hmac::<Sha256>::new_from_slice(&k)
+                .unwrap()
+                .chain_update(&[&v[..], b"\x00"].concat())
+                .finalize()
+                .into_bytes();
+            v = Hmac::<Sha256>::new_from_slice(&k)
+                .unwrap()
+                .chain_update(&v[..])
+                .finalize()
+                .into_bytes();
         }
     }
 }

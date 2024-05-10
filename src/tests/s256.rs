@@ -113,7 +113,7 @@ mod tests {
         let mut rand_array = [0u8; 32];
         OsRng.fill_bytes(rand_array.as_mut());
         let secret = U256::from_radix_le(&rand_array, 256).unwrap();
-        let pk = S256PrivateKey::new(S256Field::new(secret));
+        let pk = S256PrivateKey::from_value(secret);
         let mut rand_array = [0u8; 32];
         OsRng.fill_bytes(rand_array.as_mut());
         let z = U256::from_radix_le(&rand_array, 256).unwrap();
