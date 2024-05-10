@@ -1,7 +1,5 @@
 use bnum::types::{U1024, U256, U512};
 use bnum::BTryFrom;
-use digest::generic_array::GenericArray;
-use digest::Update;
 use hmac::{Hmac, Mac};
 use once_cell::sync::Lazy;
 use sha2::Sha256;
