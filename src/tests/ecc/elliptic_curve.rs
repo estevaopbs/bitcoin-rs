@@ -6,7 +6,9 @@ mod tests {
     use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
     field_element!(FieldElement, U256, U512, U256::from_digit(223));
+
     signature!(Signature, FieldElement, U256);
+
     point!(
         Point,
         FieldElement,
