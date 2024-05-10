@@ -78,8 +78,7 @@ macro_rules! point {
                         % <$field_type>::to_big(*Self::N),
                 );
                 let total = *Self::G * u + *self * v;
-                // total.x.unwrap() == sig.r()
-                true
+                total.x.unwrap() == sig.r()
             }
         }
 
