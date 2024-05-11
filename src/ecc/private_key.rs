@@ -26,6 +26,14 @@ macro_rules! private_key {
                 self.point
             }
 
+            fn to_big(num: $num_type) -> $bnum_type {
+                <$bnum_type as BTryFrom<$num_type>>::try_from(num).unwrap()
+            }
+
+            fn from_big(num: $bnum_type) -> $num_type {
+                <$num_type as BTryFrom<$bnum_type>>::try_from(num).unwrap()
+            }
+
             pub fn sign(&self, z: $num_type) -> $sig_type {
                 let k = self.deterministic_k(z);
                 let r = (*<$point_type>::G * k).x().unwrap().num();
@@ -35,15 +43,11 @@ macro_rules! private_key {
                     false,
                     *<$point_type>::N,
                 );
-                let mut s = <$num_type as BTryFrom<$bnum_type>>::try_from(
-                    (<$bnum_type as BTryFrom<$num_type>>::try_from(z).unwrap()
-                        + <$bnum_type as BTryFrom<$num_type>>::try_from(r).unwrap()
-                            * <$bnum_type as BTryFrom<$num_type>>::try_from(self.secret.num())
-                                .unwrap())
-                        * <$bnum_type as BTryFrom<$num_type>>::try_from(k_inv).unwrap()
-                        % <$bnum_type as BTryFrom<$num_type>>::try_from(*<$point_type>::N).unwrap(),
-                )
-                .unwrap();
+                let mut s = Self::from_big(
+                    (Self::to_big(z) + Self::to_big(r) * Self::to_big(self.secret.num()))
+                        * Self::to_big(k_inv)
+                        % Self::to_big(*<$point_type>::N),
+                );
                 if s > *<$point_type>::N / <$num_type>::TWO {
                     s = *<$point_type>::N - s;
                 }
