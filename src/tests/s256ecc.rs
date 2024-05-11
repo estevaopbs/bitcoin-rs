@@ -107,7 +107,6 @@ mod tests {
         assert!(point.verify(z, sig));
     }
 
-    // Failed test
     #[test]
     fn test_sign() {
         let mut rand_array = [0u8; 32];
