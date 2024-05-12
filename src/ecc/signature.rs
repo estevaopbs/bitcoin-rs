@@ -24,8 +24,8 @@ macro_rules! signature {
             }
 
             pub fn der(&self) -> Vec<u8> {
-                let mut rbin = self.r.num().to_be_bytes().to_vec();
-                let mut sbin = self.s.num().to_be_bytes().to_vec();
+                let rbin = self.r.num().to_be_bytes().to_vec();
+                let sbin = self.s.num().to_be_bytes().to_vec();
                 let mut result = Vec::<u8>::new();
                 let bins = [rbin, sbin];
                 for mut bin in bins {
