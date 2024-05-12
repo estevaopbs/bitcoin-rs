@@ -1,5 +1,9 @@
 macro_rules! field_element {
     ($name:ident, $num_type:ty, $bnum_type:ty, $prime_val:expr) => {
+        pub trait Sqrt {
+            fn sqrt(&self) -> Self;
+        }
+
         #[derive(PartialEq, Debug, Clone, Copy)]
         pub struct $name {
             num: $num_type,

@@ -22,6 +22,27 @@ macro_rules! signature {
             pub fn s(&self) -> $field_type {
                 self.s
             }
+
+            pub fn der(&self) -> Vec<u8> {
+                let mut rbin = self.r.num().to_be_bytes().to_vec();
+                let mut sbin = self.s.num().to_be_bytes().to_vec();
+                let mut result = Vec::<u8>::new();
+                let bins = [rbin, sbin];
+                for mut bin in bins {
+                    bin = bin
+                        .iter()
+                        .skip_while(|&&x| x == 0)
+                        .cloned()
+                        .collect::<Vec<u8>>();
+                    if bin[0] >= 128u8 {
+                        bin.splice(0..0, [0u8].iter().cloned());
+                    }
+                    result.push(2u8);
+                    result.push(bin.len() as u8);
+                    result.extend(bin);
+                }
+                result
+            }
         }
     };
 }

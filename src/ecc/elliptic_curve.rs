@@ -80,6 +80,48 @@ macro_rules! point {
                 let total = *Self::G * u + *self * v;
                 total.x.unwrap() == sig.r()
             }
+
+            pub fn sec(&self, compressed: bool) -> Vec<u8> {
+                if compressed {
+                    let first_byte =
+                        if self.y.unwrap().num() & <$num_type>::ONE == <$num_type>::ZERO {
+                            [2u8]
+                        } else {
+                            [3u8]
+                        };
+                    [&first_byte, &self.x.unwrap().num().to_be_bytes()[..]].concat()
+                } else {
+                    [
+                        &[4u8],
+                        &self.x.unwrap().num().to_be_bytes()[..],
+                        &self.y.unwrap().num().to_be_bytes()[..],
+                    ]
+                    .concat()
+                }
+            }
+
+            pub fn parse(&self, sec_bin: Vec<u8>) -> Result<Self, String> {
+                if sec_bin[0] == 4u8 {
+                    let x = <$num_type>::from_be_bytes(sec_bin[1..33].try_into().unwrap());
+                    let y = <$num_type>::from_be_bytes(sec_bin[33..65].try_into().unwrap());
+                    return Self::from_values(x, y);
+                }
+                let x = <$field_type>::new(<$num_type>::from_be_bytes(
+                    sec_bin[1..].try_into().unwrap(),
+                ));
+                let alpha = x.pow(<$num_type>::THREE, false) + *Self::B;
+                let beta = alpha.sqrt();
+                let (even_beta, odd_beta) = if beta.num() & <$num_type>::ONE == <$num_type>::ZERO {
+                    (beta, <$field_type>::new(*<$field_type>::PRIME - beta.num()))
+                } else {
+                    (<$field_type>::new(*<$field_type>::PRIME - beta.num()), beta)
+                };
+                if sec_bin[0] == 2u8 {
+                    return Self::new(Some(x), Some(even_beta));
+                } else {
+                    return Self::new(Some(x), Some(odd_beta));
+                }
+            }
         }
 
         impl Add for $name {

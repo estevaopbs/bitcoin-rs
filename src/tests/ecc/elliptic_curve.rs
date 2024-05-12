@@ -7,6 +7,12 @@ mod tests {
 
     field_element!(FieldElement, U256, U512, U256::from_digit(223));
 
+    impl Sqrt for FieldElement {
+        fn sqrt(&self) -> Self {
+            FieldElement::new(U256::ZERO)
+        }
+    }
+
     signature!(Signature, FieldElement, U256);
 
     point!(

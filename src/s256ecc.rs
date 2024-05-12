@@ -3,6 +3,7 @@ use bnum::BTryFrom;
 use hmac::{Hmac, Mac};
 use once_cell::sync::Lazy;
 use sha2::Sha256;
+
 use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
 field_element!(
@@ -14,6 +15,12 @@ field_element!(
         16,
     )
 );
+
+impl Sqrt for S256Field {
+    fn sqrt(&self) -> Self {
+        self.pow((*Self::PRIME + U256::ONE) / U256::FOUR, false)
+    }
+}
 
 signature!(S256Signature, S256Field, U256);
 
