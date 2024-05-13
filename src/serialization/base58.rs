@@ -1,7 +1,8 @@
-pub const BASE58_ALPHABET: &str = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-
 macro_rules! encode_base58 {
     ($name:ident, $num_type:ty) => {
+        pub const BASE58_ALPHABET: &str =
+            "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
         pub fn $name(s: vec<u8>) -> String {
             let num_58 = <$num_type>::from(58);
             let zeros = s.iter().take_while(|&&c| c == 0).count();
