@@ -18,3 +18,17 @@ macro_rules! encode_base58 {
         }
     };
 }
+
+macro_rules! encode_base58_checksum {
+    ($name:ident, $num_type:ty, $hasher:ty, $encode_base58:path) => {
+        pub fn $name(s: vec<u8>) -> String {
+            let checksum = Hmac::<$hasher>::new_from_slice(&s)
+                .unwrap()
+                .finalize()
+                .into_bytes();
+            let mut s = s.clone();
+            s.extend_from_slice(&checksum[..4]);
+            $encode_base58(s)
+        }
+    };
+}
