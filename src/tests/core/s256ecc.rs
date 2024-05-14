@@ -119,11 +119,26 @@ fn test_sign() {
     assert!(pk.point().verify(z, sig));
 }
 
-// Failed test
 #[test]
 fn test_wif() {
     let pk =
         S256PrivateKey::from_value(S256Field::from_big(U512::TWO.pow(256) - U512::TWO.pow(199)));
     let expected = "L5oLkpV3aqBJ4BgssVAsax1iRa77G5CVYnv9adQ6Z87te7TyUdSC";
     assert_eq!(pk.wif(true, false), expected);
+    let pk =
+        S256PrivateKey::from_value(S256Field::from_big(U512::TWO.pow(256) - U512::TWO.pow(201)));
+    let expected = "93XfLeifX7Jx7n7ELGMAf1SUR6f9kgQs8Xke8WStMwUtrDucMzn";
+    assert_eq!(pk.wif(false, true), expected);
+    let pk = S256PrivateKey::from_value(U256::parse_str_radix(
+        "0DBA685B4511DBD3D368E5C4358A1277DE9486447AF7B3604A69B8D9D8B7889D",
+        16,
+    ));
+    let expected = "5HvLFPDVgFZRK9cd4C5jcWki5Skz6fmKqi1GQJf5ZoMofid2Dty";
+    assert_eq!(pk.wif(false, false), expected);
+    let pk = S256PrivateKey::from_value(U256::parse_str_radix(
+        "1CCA23DE92FD1862FB5B76E5F4F50EB082165E5191E116C18ED1A6B24BE6A53F",
+        16,
+    ));
+    let expected = "cNYfWuhDpbNM1JWc3c6JTrtrFVxU4AGhUKgw5f93NP2QaBqmxKkg";
+    assert_eq!(pk.wif(true, true), expected);
 }
