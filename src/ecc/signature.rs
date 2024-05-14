@@ -34,7 +34,7 @@ macro_rules! signature {
                         .skip_while(|&&x| x == 0)
                         .cloned()
                         .collect::<Vec<u8>>();
-                    if bin[0] >= 128u8 {
+                    if bin[0] & 0x80 != 0 {
                         bin.splice(0..0, [0u8].iter().cloned());
                     }
                     result.push(2u8);

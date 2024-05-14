@@ -1,5 +1,6 @@
-use crate::s256ecc::{S256Point, S256PrivateKey, S256Signature};
-use bnum::types::U256;
+use crate::core::{S256Field, S256Point, S256PrivateKey, S256Signature};
+use bnum::types::{U256, U512};
+use bnum::BTryFrom;
 use rand::rngs::OsRng;
 use rand::RngCore;
 
@@ -109,11 +110,20 @@ fn test_verify() {
 fn test_sign() {
     let mut rand_array = [0u8; 32];
     OsRng.fill_bytes(rand_array.as_mut());
-    let secret = U256::from_radix_le(&rand_array, 256).unwrap();
+    let secret = U256::from_radix_be(&rand_array, 256).unwrap();
     let pk = S256PrivateKey::from_value(secret);
     let mut rand_array = [0u8; 32];
     OsRng.fill_bytes(rand_array.as_mut());
-    let z = U256::from_radix_le(&rand_array, 256).unwrap();
+    let z = U256::from_radix_be(&rand_array, 256).unwrap();
     let sig = pk.sign(z);
     assert!(pk.point().verify(z, sig));
+}
+
+// Failed test
+#[test]
+fn test_wif() {
+    let pk =
+        S256PrivateKey::from_value(S256Field::from_big(U512::TWO.pow(256) - U512::TWO.pow(199)));
+    let expected = "L5oLkpV3aqBJ4BgssVAsax1iRa77G5CVYnv9adQ6Z87te7TyUdSC";
+    assert_eq!(pk.wif(true, false), expected);
 }

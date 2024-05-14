@@ -1,7 +1,8 @@
 #[macro_use]
 mod ecc;
-mod s256ecc;
-mod serialization;
+#[macro_use]
+mod ser;
+mod core;
 #[cfg(test)]
 mod tests;
 
