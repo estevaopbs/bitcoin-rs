@@ -23,9 +23,9 @@ macro_rules! encode_base58 {
 }
 
 macro_rules! encode_base58_checksum {
-    ($name:ident, $num_type:ty, $hasher_fn:path, $encode_base58:path) => {
+    ($name:ident, $hasher_fn:path, $encode_base58:path) => {
         pub fn $name(mut s: Vec<u8>) -> String {
-            let mut checksum = $hasher_fn(&s);
+            let checksum = $hasher_fn(&s);
             s.extend_from_slice(&checksum[..4]);
             $encode_base58(s)
         }

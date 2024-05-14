@@ -1,6 +1,5 @@
 use crate::core::{S256Field, S256Point, S256PrivateKey, S256Signature};
 use bnum::types::{U256, U512};
-use bnum::BTryFrom;
 use rand::rngs::OsRng;
 use rand::RngCore;
 
