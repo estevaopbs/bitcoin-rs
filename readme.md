@@ -1,4 +1,4 @@
-# Bitcoin-rs
+# bitcoin-rs
 
 This is a simplified version of Bitcoin, implemented in Rust. The project is based on the book "Programming Bitcoin" by Jimmy Song.
 
