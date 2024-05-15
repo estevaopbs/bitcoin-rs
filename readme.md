@@ -16,12 +16,12 @@ Please note that this project is still under development and not yet ready for u
 
 This project uses the following dependencies:
 
-- bnum: For handling big numbers.
-- sha2: For SHA-256 hashing.
-- hmac: For HMAC-SHA256 hashing.
-- once_cell: For single assignment cells.
-- ripemd: For RIPEMD-160 hashing.
-- rand: For generating random numbers (used in dev environment).
+- `bnum`: For handling big numbers.
+- `sha2`: For SHA-256 hashing.
+- `hmac`: For HMAC-SHA256 hashing.
+- `once_cell`: For single assignment cells.
+- `ripemd`: For RIPEMD-160 hashing.
+- `rand`: For generating random numbers (used in dev environment).
 
 ## Contributing
 
