@@ -1,6 +1,5 @@
 use bnum::types::U512;
-use ripemd::Digest;
-use ripemd::Ripemd160;
+use ripemd::{Digest, Ripemd160};
 use sha2::Sha256;
 
 encode_base58!(encode_base58, U512, 64);
