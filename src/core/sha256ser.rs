@@ -1,5 +1,5 @@
 use bnum::types::U512;
-use ripemd::Digest as RipemdDigest;
+use ripemd::Digest;
 use ripemd::Ripemd160;
 use sha2::Sha256;
 
