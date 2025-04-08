@@ -29,15 +29,15 @@ macro_rules! field_element {
                 self.num
             }
 
-            fn num_512(&self) -> $bnum_type {
+            fn big_num(&self) -> $bnum_type {
                 Self::to_big(self.num)
             }
 
-            pub fn from_big(num: $bnum_type) -> $num_type {
+            pub(crate) fn from_big(num: $bnum_type) -> $num_type {
                 <$num_type as BTryFrom<$bnum_type>>::try_from(num).unwrap()
             }
 
-            pub fn to_big(num: $num_type) -> $bnum_type {
+            pub(crate) fn to_big(num: $num_type) -> $bnum_type {
                 <$bnum_type as BTryFrom<$num_type>>::try_from(num).unwrap()
             }
 
@@ -73,7 +73,7 @@ macro_rules! field_element {
             type Output = Self;
 
             fn add(self, rhs: Self) -> Self::Output {
-                let num = (self.num_512() + Self::to_big(rhs.num)) % *Self::BIG_PRIME;
+                let num = (self.big_num() + Self::to_big(rhs.num)) % *Self::BIG_PRIME;
                 Self::new(Self::from_big(num))
             }
         }
@@ -95,7 +95,7 @@ macro_rules! field_element {
             type Output = Self;
 
             fn mul(self, rhs: Self) -> Self::Output {
-                let num = (self.num_512() * Self::to_big(rhs.num)) % *Self::BIG_PRIME;
+                let num = (self.big_num() * Self::to_big(rhs.num)) % *Self::BIG_PRIME;
                 Self::new(Self::from_big(num))
             }
         }

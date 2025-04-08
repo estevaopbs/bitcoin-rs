@@ -1,7 +1,7 @@
 use crate::core::{S256Field, S256Point, S256PrivateKey, S256Signature};
 use bnum::types::{U256, U512};
 use rand::rngs::OsRng;
-use rand::RngCore;
+use rand::TryRngCore;
 
 #[test]
 fn test_order() {
@@ -108,11 +108,11 @@ fn test_verify() {
 #[test]
 fn test_sign() {
     let mut rand_array = [0u8; 32];
-    OsRng.fill_bytes(rand_array.as_mut());
+    OsRng.try_fill_bytes(rand_array.as_mut()).unwrap();
     let secret = U256::from_radix_be(&rand_array, 256).unwrap();
     let pk = S256PrivateKey::from_value(secret);
     let mut rand_array = [0u8; 32];
-    OsRng.fill_bytes(rand_array.as_mut());
+    OsRng.try_fill_bytes(rand_array.as_mut()).unwrap();
     let z = U256::from_radix_be(&rand_array, 256).unwrap();
     let sig = pk.sign(z);
     assert!(pk.point().verify(z, sig));

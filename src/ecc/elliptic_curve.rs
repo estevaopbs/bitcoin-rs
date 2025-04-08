@@ -26,6 +26,10 @@ macro_rules! point {
 
             pub const INFINITY: Self = Self { x: None, y: None };
 
+            const SEC_X_END: usize = <$num_type>::BYTES as usize + 1;
+
+            const SEC_Y_END: usize = 2 * <$num_type>::BYTES as usize + 1;
+
             pub fn new(x: Option<$field_type>, y: Option<$field_type>) -> Result<Self, String> {
                 if x.is_none() && y.is_none() {
                     return Ok(Self::INFINITY);
@@ -102,8 +106,13 @@ macro_rules! point {
 
             pub fn parse(&self, sec_bin: Vec<u8>) -> Result<Self, String> {
                 if sec_bin[0] == 4u8 {
-                    let x = <$num_type>::from_be_bytes(sec_bin[1..33].try_into().unwrap());
-                    let y = <$num_type>::from_be_bytes(sec_bin[33..65].try_into().unwrap());
+                    let x =
+                        <$num_type>::from_be_bytes(sec_bin[1..Self::SEC_X_END].try_into().unwrap());
+                    let y = <$num_type>::from_be_bytes(
+                        sec_bin[Self::SEC_X_END..Self::SEC_Y_END]
+                            .try_into()
+                            .unwrap(),
+                    );
                     return Self::from_values(x, y);
                 }
                 let x = <$field_type>::new(<$num_type>::from_be_bytes(
