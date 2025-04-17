@@ -1,6 +1,4 @@
 #[macro_use]
-mod base58;
+pub mod base58;
 #[macro_use]
-mod ripemd160;
-#[macro_use]
-mod hash;
+pub mod chained_hash;

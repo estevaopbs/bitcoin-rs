@@ -1,11 +1,13 @@
-use crate::core::{S256Field, S256Point, S256PrivateKey, S256Signature};
+use crate::core::s256ecc::{S256CurveCfg, S256FieldCfg, S256Point, S256PrivateKey, S256Signature};
+use crate::ecc::elliptic_curve::EllipticCurve;
+use crate::ecc::finite_field::Modulus;
 use bnum::types::{U256, U512};
 use rand::rngs::OsRng;
 use rand::TryRngCore;
 
 #[test]
 fn test_order() {
-    assert_eq!(*S256Point::G * *S256Point::N, S256Point::INFINITY)
+    assert_eq!(*S256Point::G * S256CurveCfg::N, S256Point::INFINITY)
 }
 
 #[test]
@@ -120,12 +122,14 @@ fn test_sign() {
 
 #[test]
 fn test_wif() {
-    let pk =
-        S256PrivateKey::from_value(S256Field::from_big(U512::TWO.pow(256) - U512::TWO.pow(199)));
+    let pk = S256PrivateKey::from_value(S256FieldCfg::from_big(
+        U512::TWO.pow(256) - U512::TWO.pow(199),
+    ));
     let expected = "L5oLkpV3aqBJ4BgssVAsax1iRa77G5CVYnv9adQ6Z87te7TyUdSC";
     assert_eq!(pk.wif(true, false), expected);
-    let pk =
-        S256PrivateKey::from_value(S256Field::from_big(U512::TWO.pow(256) - U512::TWO.pow(201)));
+    let pk = S256PrivateKey::from_value(S256FieldCfg::from_big(
+        U512::TWO.pow(256) - U512::TWO.pow(201),
+    ));
     let expected = "93XfLeifX7Jx7n7ELGMAf1SUR6f9kgQs8Xke8WStMwUtrDucMzn";
     assert_eq!(pk.wif(false, true), expected);
     let pk = S256PrivateKey::from_value(U256::parse_str_radix(

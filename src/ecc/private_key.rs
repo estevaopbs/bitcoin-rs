@@ -1,109 +1,157 @@
+use super::elliptic_curve::{EllipticCurve, Point};
+use super::finite_field::{FieldElement, Modulus};
+use super::signature::Signature;
+use bnum::cast::As;
+use bnum::BUint;
+use hmac::digest::block_buffer::Eager;
+use hmac::digest::consts::U256;
+use hmac::digest::core_api::{
+    BlockSizeUser, BufferKindUser, CoreProxy, FixedOutputCore, UpdateCore,
+};
+use hmac::digest::typenum::{IsLess, Le, NonZero};
+use hmac::digest::HashMarker;
+use hmac::{Hmac, Mac};
+use std::marker::PhantomData;
+
+pub struct PrivateKey<E: EllipticCurve<M, N>, M: Modulus<N>, const N: usize, H>
+where
+    H: CoreProxy,
+    H::Core: HashMarker
+        + UpdateCore
+        + FixedOutputCore
+        + BufferKindUser<BufferKind = Eager>
+        + Default
+        + Clone,
+    <H::Core as BlockSizeUser>::BlockSize: IsLess<U256>,
+    Le<<H::Core as BlockSizeUser>::BlockSize, U256>: NonZero,
+    [(); 2 * N]:,
+{
+    secret: FieldElement<M, N>,
+    point: Point<E, M, N>,
+    _marker: PhantomData<H>,
+}
+
+impl<E: EllipticCurve<M, N>, M: Modulus<N>, const N: usize, H> PrivateKey<E, M, N, H>
+where
+    H: CoreProxy,
+    H::Core: HashMarker
+        + UpdateCore
+        + FixedOutputCore
+        + BufferKindUser<BufferKind = Eager>
+        + Default
+        + Clone,
+    <H::Core as BlockSizeUser>::BlockSize: IsLess<U256>,
+    Le<<H::Core as BlockSizeUser>::BlockSize, U256>: NonZero,
+    [(); 2 * N]:,
+    [(); N / 8]:,
+    [(); BUint::<N>::BYTES_USIZE]:,
+    [(); 4 * N]:,
+{
+    pub fn new(secret: FieldElement<M, N>) -> Self {
+        Self {
+            secret,
+            point: *Point::<E, M, N>::G * secret.num(),
+            _marker: PhantomData,
+        }
+    }
+
+    pub fn from_value(secret: BUint<N>) -> Self {
+        Self::new(FieldElement::<M, N>::new(secret))
+    }
+
+    pub fn secret(&self) -> FieldElement<M, N> {
+        self.secret
+    }
+
+    pub fn point(&self) -> Point<E, M, N> {
+        self.point
+    }
+
+    fn to_big(x: BUint<N>) -> BUint<{ 4 * N }> {
+        x.as_()
+    }
+
+    fn from_big(x: BUint<{ 4 * N }>) -> BUint<N> {
+        x.as_()
+    }
+
+    pub fn sign(&self, z: BUint<N>) -> Signature<M, N> {
+        let k = self.deterministic_k(z);
+        let r = (*Point::<E, M, N>::G * k).x().unwrap().num();
+        let k_inv = FieldElement::<M, N>::mod_pow(k, E::N - BUint::<N>::TWO, false, E::N);
+        let mut s = Self::from_big(
+            (Self::to_big(z) + Self::to_big(r) * Self::to_big(self.secret.num()))
+                * Self::to_big(k_inv)
+                % Self::to_big(E::N),
+        );
+        if s > E::N / BUint::<N>::TWO {
+            s = E::N - s;
+        }
+        Signature::<M, N>::from_values(r, s)
+    }
+
+    fn deterministic_k(&self, mut z: BUint<N>) -> BUint<N> {
+        let k = [0u8; BUint::<N>::BYTES_USIZE];
+        let v = [1u8; BUint::<N>::BYTES_USIZE];
+        if z > E::N {
+            z -= E::N;
+        }
+        let z_bytes = z.to_be_bytes();
+        let secret_bytes = self.secret.num().to_be_bytes();
+        let mut k = Hmac::<H>::new_from_slice(&k)
+            .unwrap()
+            .chain_update(&[&v[..], &[0u8], &secret_bytes[..], &z_bytes[..]].concat())
+            .finalize()
+            .into_bytes();
+        let mut v = Hmac::<H>::new_from_slice(&k)
+            .unwrap()
+            .chain_update(&v[..])
+            .finalize()
+            .into_bytes();
+        k = Hmac::<H>::new_from_slice(&k)
+            .unwrap()
+            .chain_update(&[&v[..], &[1u8]].concat())
+            .finalize()
+            .into_bytes();
+        v = Hmac::<H>::new_from_slice(&k)
+            .unwrap()
+            .chain_update(&v[..])
+            .finalize()
+            .into_bytes();
+        loop {
+            v = Hmac::<H>::new_from_slice(&k)
+                .unwrap()
+                .chain_update(&v[..])
+                .finalize()
+                .into_bytes();
+            let mut bytes = [0u8; BUint::<N>::BYTES_USIZE];
+            let hash_bytes = v.as_slice();
+
+            let len = core::cmp::min(bytes.len(), hash_bytes.len());
+            bytes[..len].copy_from_slice(&hash_bytes[..len]);
+
+            let candidate = BUint::<N>::from_be_bytes(bytes);
+
+            if candidate >= BUint::<N>::ONE && candidate < E::N {
+                return candidate;
+            }
+            k = Hmac::<H>::new_from_slice(&k)
+                .unwrap()
+                .chain_update(&[&v[..], &[0u8]].concat())
+                .finalize()
+                .into_bytes();
+            v = Hmac::<H>::new_from_slice(&k)
+                .unwrap()
+                .chain_update(&v[..])
+                .finalize()
+                .into_bytes();
+        }
+    }
+}
+
 macro_rules! private_key {
-    ($name:ident, $field_type:ty, $sig_type:ty, $point_type:ty, $num_type:ty, $bnum_type:ty, $vec_size:expr, $hasher:ty) => {
-        #[derive(Debug)]
-        pub struct $name {
-            secret: $field_type,
-            point: $point_type,
-        }
-
-        impl $name {
-            pub fn new(secret: $field_type) -> Self {
-                Self {
-                    secret,
-                    point: *<$point_type>::G * secret.num(),
-                }
-            }
-
-            pub fn from_value(secret: $num_type) -> Self {
-                Self::new(<$field_type>::new(secret))
-            }
-
-            pub fn secret(&self) -> $field_type {
-                self.secret
-            }
-
-            pub fn point(&self) -> $point_type {
-                self.point
-            }
-
-            fn to_big(num: $num_type) -> $bnum_type {
-                <$bnum_type as BTryFrom<$num_type>>::try_from(num).unwrap()
-            }
-
-            fn from_big(num: $bnum_type) -> $num_type {
-                <$num_type as BTryFrom<$bnum_type>>::try_from(num).unwrap()
-            }
-
-            pub fn sign(&self, z: $num_type) -> $sig_type {
-                let k = self.deterministic_k(z);
-                let r = (*<$point_type>::G * k).x().unwrap().num();
-                let k_inv = <$field_type>::mod_pow(
-                    k,
-                    *<$point_type>::N - <$num_type>::TWO,
-                    false,
-                    *<$point_type>::N,
-                );
-                let mut s = Self::from_big(
-                    (Self::to_big(z) + Self::to_big(r) * Self::to_big(self.secret.num()))
-                        * Self::to_big(k_inv)
-                        % Self::to_big(*<$point_type>::N),
-                );
-                if s > *<$point_type>::N / <$num_type>::TWO {
-                    s = *<$point_type>::N - s;
-                }
-                <$sig_type>::from_values(r, s)
-            }
-
-            fn deterministic_k(&self, mut z: $num_type) -> $num_type {
-                let k = [0u8; $vec_size];
-                let v = [1u8; $vec_size];
-                if z > *<$point_type>::N {
-                    z -= *<$point_type>::N;
-                }
-                let z_bytes = z.to_be_bytes();
-                let secret_bytes = self.secret.num().to_be_bytes();
-                let mut k = Hmac::<$hasher>::new_from_slice(&k)
-                    .unwrap()
-                    .chain_update(&[&v[..], &[0u8], &secret_bytes[..], &z_bytes[..]].concat())
-                    .finalize()
-                    .into_bytes();
-                let mut v = Hmac::<$hasher>::new_from_slice(&k)
-                    .unwrap()
-                    .chain_update(&v[..])
-                    .finalize()
-                    .into_bytes();
-                k = Hmac::<$hasher>::new_from_slice(&k)
-                    .unwrap()
-                    .chain_update(&[&v[..], &[1u8]].concat())
-                    .finalize()
-                    .into_bytes();
-                v = Hmac::<$hasher>::new_from_slice(&k)
-                    .unwrap()
-                    .chain_update(&v[..])
-                    .finalize()
-                    .into_bytes();
-                loop {
-                    v = Hmac::<$hasher>::new_from_slice(&k)
-                        .unwrap()
-                        .chain_update(&v[..])
-                        .finalize()
-                        .into_bytes();
-                    let candidate = <$num_type>::from_be_bytes(v.try_into().unwrap());
-                    if candidate >= <$num_type>::ONE && candidate < *<$point_type>::N {
-                        return candidate;
-                    }
-                    k = Hmac::<$hasher>::new_from_slice(&k)
-                        .unwrap()
-                        .chain_update(&[&v[..], &[0u8]].concat())
-                        .finalize()
-                        .into_bytes();
-                    v = Hmac::<$hasher>::new_from_slice(&k)
-                        .unwrap()
-                        .chain_update(&v[..])
-                        .finalize()
-                        .into_bytes();
-                }
-            }
-        }
+    ($name: ident, $curve_config: ident ,$modulus: ident, $bits: expr, $hasher: ty) => {
+        pub type $name =
+            crate::ecc::private_key::PrivateKey<$curve_config, $modulus, { $bits / 64 }, $hasher>;
     };
 }

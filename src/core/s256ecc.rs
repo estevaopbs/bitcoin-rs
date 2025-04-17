@@ -1,53 +1,39 @@
-use crate::core::{encode_base58_checksum, hash160};
-use bnum::types::{U1024, U256, U512};
-use bnum::BTryFrom;
-use hmac::{Hmac, Mac};
+use super::sha256ser::*;
+use crate::ecc::elliptic_curve::EllipticCurve;
+use crate::ecc::finite_field::{FieldElement, Modulus, Sqrt};
+use crate::ser::base58::Base58;
+use crate::ser::chained_hash::ChainedCompute;
+use bnum::BUint;
 use once_cell::sync::Lazy;
 use sha2::Sha256;
-use std::ops::{Add, AddAssign, Div, Mul, Sub};
 
 field_element!(
     S256Field,
-    U256,
-    U512,
-    U256::parse_str_radix(
-        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",
-        16,
-    )
+    S256FieldCfg,
+    256,
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F",
+    16,
+    p3mod4
 );
 
-impl Sqrt for S256Field {
-    fn sqrt(&self) -> Self {
-        self.pow((*Self::PRIME + U256::ONE) / U256::FOUR, false)
-    }
-}
-
-signature!(S256Signature, S256Field, U256);
+signature!(S256Signature, S256FieldCfg, 256);
 
 point!(
     S256Point,
-    S256Field,
-    S256Signature,
-    U256,
-    U256::ZERO,
-    U256::SEVEN,
-    U256::parse_str_radix(
-        "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
-        16,
-    ),
-    U256::parse_str_radix(
-        "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",
-        16,
-    ),
-    U256::parse_str_radix(
-        "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
-        16,
-    )
+    S256CurveCfg,
+    S256FieldCfg,
+    256,
+    "0",
+    "7",
+    "79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798",
+    "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",
+    "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
+    16
 );
 
 impl S256Point {
     pub fn hash160(&self, compressed: bool) -> Vec<u8> {
-        hash160(self.sec(compressed))
+        Sha256Ripemd160::compute(self.sec(compressed).as_slice())
     }
 
     pub fn address(&self, compressed: bool, testnet: bool) -> String {
@@ -55,20 +41,11 @@ impl S256Point {
         let prefix = if testnet { vec![0x6f] } else { vec![0x00] };
         let mut payload = prefix;
         payload.extend_from_slice(&h160);
-        encode_base58_checksum(payload)
+        Sha256Base58::encode_base58_with_checksum(payload)
     }
 }
 
-private_key!(
-    S256PrivateKey,
-    S256Field,
-    S256Signature,
-    S256Point,
-    U256,
-    U1024,
-    32,
-    Sha256
-);
+private_key!(S256PrivateKey, S256CurveCfg, S256FieldCfg, 256, Sha256);
 
 impl S256PrivateKey {
     pub fn wif(&self, compressed: bool, testnet: bool) -> String {
@@ -77,6 +54,6 @@ impl S256PrivateKey {
         if compressed {
             result.push(0x01);
         }
-        encode_base58_checksum(result)
+        Sha256Base58::encode_base58_with_checksum(result)
     }
 }

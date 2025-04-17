@@ -1,11 +1,8 @@
-use bnum::types::U512;
-use ripemd::{Digest, Ripemd160};
+use ripemd::Ripemd160;
 use sha2::Sha256;
 
-encode_base58!(encode_base58, U512, 64);
+chained_hash!(DoubleSha256, Sha256, Sha256, 1);
 
-hash!(hash256, Sha256, 2);
+base58!(Sha256Base58, DoubleSha256, 1, Sha256, Sha256, 512);
 
-encode_base58_checksum!(encode_base58_checksum, hash256, encode_base58);
-
-hash160!(hash160, Sha256);
+chained_hash!(Sha256Ripemd160, Sha256, Ripemd160, 1);

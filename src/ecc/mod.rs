@@ -1,8 +1,11 @@
 #[macro_use]
-mod elliptic_curve;
+pub mod finite_field;
+
 #[macro_use]
-mod finite_field;
+pub mod signature;
+
 #[macro_use]
-mod signature;
+pub mod elliptic_curve;
+
 #[macro_use]
-mod private_key;
+pub mod private_key;
