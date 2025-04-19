@@ -39,11 +39,6 @@ where
         _marker: PhantomData,
     };
 
-    pub const FIELD_1: FieldElement<M, N> = FieldElement {
-        num: BUint::<N>::ONE,
-        _marker: PhantomData,
-    };
-
     #[inline]
     pub fn new(num: BUint<N>) -> Self {
         Self {
