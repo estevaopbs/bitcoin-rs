@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 #![feature(trivial_bounds)]
