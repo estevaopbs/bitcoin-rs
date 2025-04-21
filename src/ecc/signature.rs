@@ -13,22 +13,27 @@ impl<M: Modulus<N>, const N: usize> Signature<M, N>
 where
     [(); 2 * N]:,
 {
+    #[inline]
     pub const fn new(r: FieldElement<M, N>, s: FieldElement<M, N>) -> Self {
         Self { r, s }
     }
 
+    #[inline]
     pub fn from_values(r: BUint<N>, s: BUint<N>) -> Self {
         Self::new(FieldElement::<M, N>::new(r), FieldElement::<M, N>::new(s))
     }
 
+    #[inline]
     pub fn r(&self) -> FieldElement<M, N> {
         self.r
     }
 
+    #[inline]
     pub fn s(&self) -> FieldElement<M, N> {
         self.s
     }
 
+    #[inline]
     pub fn der(&self) -> Vec<u8>
     where
         [(); BUint::<N>::BYTES_USIZE]:,

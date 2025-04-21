@@ -47,6 +47,7 @@ where
     [(); BUint::<N>::BYTES_USIZE]:,
     [(); 4 * N]:,
 {
+    #[inline]
     pub fn new(secret: FieldElement<M, N>) -> Self {
         Self {
             secret,
@@ -55,26 +56,32 @@ where
         }
     }
 
+    #[inline]
     pub fn from_value(secret: BUint<N>) -> Self {
         Self::new(FieldElement::<M, N>::new(secret))
     }
 
+    #[inline]
     pub fn secret(&self) -> FieldElement<M, N> {
         self.secret
     }
 
+    #[inline]
     pub fn point(&self) -> Point<E, M, N> {
         self.point
     }
 
+    #[inline]
     fn to_big(x: BUint<N>) -> BUint<{ 4 * N }> {
         x.as_()
     }
 
+    #[inline]
     fn from_big(x: BUint<{ 4 * N }>) -> BUint<N> {
         x.as_()
     }
 
+    #[inline]
     pub fn sign(&self, z: BUint<N>) -> Signature<M, N> {
         let k = self.deterministic_k(z);
         let r = (*Point::<E, M, N>::G * k).x().unwrap().num();
@@ -90,6 +97,7 @@ where
         Signature::<M, N>::from_values(r, s)
     }
 
+    #[inline]
     fn deterministic_k(&self, mut z: BUint<N>) -> BUint<N> {
         let k = [0u8; BUint::<N>::BYTES_USIZE];
         let v = [1u8; BUint::<N>::BYTES_USIZE];

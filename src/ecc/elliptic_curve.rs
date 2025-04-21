@@ -44,20 +44,32 @@ where
         _marker: PhantomData,
     };
 
+    #[inline]
+    fn is_on_curve(x: &FieldElement<M, N>, y: &FieldElement<M, N>) -> bool {
+        y.pow(BUint::<N>::TWO, false) == x.pow(BUint::<N>::THREE, false) + *E::A * *x + *E::B
+    }
+
+    #[inline]
     pub fn new(
         x: Option<FieldElement<M, N>>,
         y: Option<FieldElement<M, N>>,
-    ) -> Result<Self, &'static str> {
+    ) -> Result<Self, String> {
         if x.is_none() && y.is_none() {
             return Ok(Self::INFINITY);
         }
         if x.is_none() || y.is_none() {
-            return Err("Either both x and y must be None or neither");
+            return Err(
+                "Invalid point: both x and y must be provided, or both must be None.".to_string(),
+            );
         }
         let x = x.unwrap();
         let y = y.unwrap();
-        if y.pow(BUint::<N>::TWO, false) != x.pow(BUint::<N>::THREE, false) + *E::A * x + *E::B {
-            return Err("Point is not on the curve");
+        if !Self::is_on_curve(&x, &y) {
+            return Err(format!(
+                "Invalid point: ({}, {}) does not satisfy the curve equation y^2 = x^3 + ax + b",
+                x.num(),
+                y.num()
+            ));
         }
         Ok(Self {
             x: Some(x),
@@ -66,25 +78,30 @@ where
         })
     }
 
-    pub fn from_values(x: BUint<N>, y: BUint<N>) -> Result<Point<E, M, N>, &'static str> {
+    #[inline]
+    pub fn from_values(x: BUint<N>, y: BUint<N>) -> Result<Self, String> {
         Self::new(
             Some(FieldElement::<M, N>::new(x)),
             Some(FieldElement::<M, N>::new(y)),
         )
     }
 
+    #[inline]
     pub fn x(&self) -> Option<FieldElement<M, N>> {
         self.x
     }
 
+    #[inline]
     pub fn y(&self) -> Option<FieldElement<M, N>> {
         self.y
     }
 
+    #[inline]
     pub fn is_infinity(&self) -> bool {
         self.x.is_none()
     }
 
+    #[inline]
     pub fn verify(&self, z: BUint<N>, sig: Signature<M, N>) -> bool {
         let s_inv =
             FieldElement::<M, N>::mod_pow(sig.s().num(), E::N - BUint::<N>::TWO, false, E::N);
@@ -115,7 +132,8 @@ where
         }
     }
 
-    pub fn parse(&self, sec_bin: Vec<u8>) -> Result<Self, &'static str>
+    #[inline]
+    pub fn parse(&self, sec_bin: Vec<u8>) -> Result<Self, String>
     where
         [(); BUint::<N>::BYTES_USIZE]:,
         FieldElement<M, N>: Sqrt,
@@ -149,6 +167,7 @@ where
 {
     type Output = Self;
 
+    #[inline]
     fn add(self, rhs: Self) -> Self::Output {
         if self.is_infinity() {
             return rhs;
@@ -177,7 +196,12 @@ where
             let y3 = s * (x1 - x3) - y1;
             (x3, y3)
         } else {
-            panic!("Could not add points {:?}, {:?}", self, rhs);
+            debug_assert!(
+                false,
+                "Could not add points {:?}, {:?}. This should be logically impossible.",
+                self, rhs
+            );
+            return Self::INFINITY;
         };
         Self::new(Some(x3), Some(y3)).unwrap()
     }
@@ -188,6 +212,7 @@ where
     M: Modulus<N>,
     [(); 2 * N]:,
 {
+    #[inline]
     fn add_assign(&mut self, rhs: Self) {
         *self = *self + rhs;
     }
@@ -199,6 +224,7 @@ where
 {
     type Output = Self;
 
+    #[inline]
     fn mul(self, rhs: BUint<N>) -> Self::Output {
         let mut coef = rhs;
         coef %= E::N;

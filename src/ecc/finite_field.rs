@@ -155,6 +155,7 @@ pub trait Sqrt {
     fn sqrt(&self) -> Self;
 }
 
+#[inline]
 pub fn p3mod4<M: Modulus<N>, const N: usize>(x: FieldElement<M, N>) -> FieldElement<M, N>
 where
     [(); 2 * N]:,
@@ -162,6 +163,7 @@ where
     x.pow((M::PRIME + BUint::<N>::ONE) / BUint::<N>::FOUR, false)
 }
 
+#[inline]
 pub fn p5mod8<M: Modulus<N>, const N: usize>(x: FieldElement<M, N>) -> FieldElement<M, N>
 where
     [(); 2 * N]:,
@@ -235,6 +237,7 @@ macro_rules! field_element {
         pub type $name = crate::ecc::finite_field::FieldElement<$config_name, { $bits / 64 }>;
 
         impl Sqrt for $name {
+            #[inline]
             fn sqrt(&self) -> Self {
                 crate::ecc::finite_field::$sqrt_method(*self)
             }

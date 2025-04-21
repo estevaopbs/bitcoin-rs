@@ -32,10 +32,12 @@ point!(
 );
 
 impl S256Point {
+    #[inline]
     pub fn hash160(&self, compressed: bool) -> Vec<u8> {
         Sha256Ripemd160::compute(self.sec(compressed).as_slice())
     }
 
+    #[inline]
     pub fn address(&self, compressed: bool, testnet: bool) -> String {
         let h160 = self.hash160(compressed);
         let prefix = if testnet { vec![0x6f] } else { vec![0x00] };
@@ -48,6 +50,7 @@ impl S256Point {
 private_key!(S256PrivateKey, S256CurveCfg, S256FieldCfg, 256, Sha256);
 
 impl S256PrivateKey {
+    #[inline]
     pub fn wif(&self, compressed: bool, testnet: bool) -> String {
         let mut result = if testnet { vec![0xef] } else { vec![0x80] };
         result.extend_from_slice(&self.secret().num().to_be_bytes());
