@@ -1,16 +1,18 @@
 use super::finite_field::{FieldElement, Modulus};
 use bnum::BUint;
 
-pub struct Signature<M: Modulus<N>, const N: usize>
+pub struct Signature<M, const N: usize>
 where
+    M: Modulus<N>,
     [(); 2 * N]:,
 {
     r: FieldElement<M, N>,
     s: FieldElement<M, N>,
 }
 
-impl<M: Modulus<N>, const N: usize> Signature<M, N>
+impl<M, const N: usize> Signature<M, N>
 where
+    M: Modulus<N>,
     [(); 2 * N]:,
 {
     #[inline]

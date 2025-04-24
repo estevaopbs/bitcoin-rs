@@ -4,11 +4,12 @@ use hmac::digest::Digest;
 use std::convert::TryInto;
 use std::marker::PhantomData;
 
-pub trait Base58<C: ChainedCompute<R, H, F>, const R: usize, H, F, const N: usize>
+pub trait Base58<C, const R: usize, H, F, const N: usize>
 where
-    [(); BUint::<N>::BYTES_USIZE]:,
     H: Digest,
     F: Digest,
+    C: ChainedCompute<R, H, F>,
+    [(); BUint::<N>::BYTES_USIZE]:,
 {
     const BASE58_ALPHABET: &'static str;
 
@@ -41,9 +42,10 @@ where
 
 pub struct Base58ChainedHasher<C: ChainedCompute<R, H, F>, const R: usize, H, F, const N: usize>
 where
-    [(); BUint::<N>::BYTES_USIZE]:,
     H: Digest,
     F: Digest,
+    C: ChainedCompute<R, H, F>,
+    [(); BUint::<N>::BYTES_USIZE]:,
 {
     _marker_c: PhantomData<C>,
     _marker_h: PhantomData<H>,

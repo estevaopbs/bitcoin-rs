@@ -22,16 +22,18 @@ where
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]
-pub struct FieldElement<M: Modulus<N>, const N: usize>
+pub struct FieldElement<M, const N: usize>
 where
+    M: Modulus<N>,
     [(); 2 * N]:,
 {
     num: BUint<N>,
     _marker: PhantomData<M>,
 }
 
-impl<M: Modulus<N>, const N: usize> FieldElement<M, N>
+impl<M, const N: usize> FieldElement<M, N>
 where
+    M: Modulus<N>,
     [(); 2 * N]:,
 {
     pub const FIELD_0: FieldElement<M, N> = FieldElement {
@@ -95,8 +97,9 @@ where
     }
 }
 
-impl<M: Modulus<N>, const N: usize> Add for FieldElement<M, N>
+impl<M, const N: usize> Add for FieldElement<M, N>
 where
+    M: Modulus<N>,
     [(); 2 * N]:,
 {
     type Output = Self;
@@ -108,8 +111,9 @@ where
     }
 }
 
-impl<M: Modulus<N>, const N: usize> Sub for FieldElement<M, N>
+impl<M, const N: usize> Sub for FieldElement<M, N>
 where
+    M: Modulus<N>,
     [(); 2 * N]:,
 {
     type Output = Self;
@@ -125,8 +129,9 @@ where
     }
 }
 
-impl<M: Modulus<N>, const N: usize> Mul for FieldElement<M, N>
+impl<M, const N: usize> Mul for FieldElement<M, N>
 where
+    M: Modulus<N>,
     [(); 2 * N]:,
 {
     type Output = Self;
@@ -138,8 +143,9 @@ where
     }
 }
 
-impl<M: Modulus<N>, const N: usize> Div for FieldElement<M, N>
+impl<M, const N: usize> Div for FieldElement<M, N>
 where
+    M: Modulus<N>,
     [(); 2 * N]:,
 {
     type Output = Self;
@@ -156,23 +162,26 @@ pub trait Sqrt {
 }
 
 #[inline]
-pub fn p3mod4<M: Modulus<N>, const N: usize>(x: FieldElement<M, N>) -> FieldElement<M, N>
+pub fn p3mod4<M, const N: usize>(x: FieldElement<M, N>) -> FieldElement<M, N>
 where
+    M: Modulus<N>,
     [(); 2 * N]:,
 {
     x.pow((M::PRIME + BUint::<N>::ONE) / BUint::<N>::FOUR, false)
 }
 
 #[inline]
-pub fn p5mod8<M: Modulus<N>, const N: usize>(x: FieldElement<M, N>) -> FieldElement<M, N>
+pub fn p5mod8<M, const N: usize>(x: FieldElement<M, N>) -> FieldElement<M, N>
 where
+    M: Modulus<N>,
     [(); 2 * N]:,
 {
     x.pow((M::PRIME + BUint::<N>::THREE) / BUint::<N>::EIGHT, false)
 }
 
-pub fn tonelli_shanks<M: Modulus<N>, const N: usize>(x: FieldElement<M, N>) -> FieldElement<M, N>
+pub fn tonelli_shanks<M, const N: usize>(x: FieldElement<M, N>) -> FieldElement<M, N>
 where
+    M: Modulus<N>,
     [(); 2 * N]:,
 {
     let zero = BUint::<N>::ZERO;

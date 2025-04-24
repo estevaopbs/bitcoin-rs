@@ -23,8 +23,10 @@ where
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]
-pub struct Point<E: EllipticCurve<M, N>, M: Modulus<N>, const N: usize>
+pub struct Point<E, M, const N: usize>
 where
+    M: Modulus<N>,
+    E: EllipticCurve<M, N>,
     [(); 2 * N]:,
 {
     x: Option<FieldElement<M, N>>,
@@ -32,8 +34,10 @@ where
     _marker: PhantomData<E>,
 }
 
-impl<E: EllipticCurve<M, N>, M: Modulus<N>, const N: usize> Point<E, M, N>
+impl<E, M, const N: usize> Point<E, M, N>
 where
+    M: Modulus<N>,
+    E: EllipticCurve<M, N>,
     [(); 2 * N]:,
 {
     pub const G: Lazy<Self> = Lazy::new(|| Self::from_values(E::GX.num(), E::GY.num()).unwrap());
@@ -161,8 +165,10 @@ where
     }
 }
 
-impl<E: EllipticCurve<M, N>, M: Modulus<N>, const N: usize> Add for Point<E, M, N>
+impl<E, M, const N: usize> Add for Point<E, M, N>
 where
+    M: Modulus<N>,
+    E: EllipticCurve<M, N>,
     [(); 2 * N]:,
 {
     type Output = Self;
@@ -207,9 +213,10 @@ where
     }
 }
 
-impl<E: EllipticCurve<M, N>, M: Modulus<N>, const N: usize> AddAssign for Point<E, M, N>
+impl<E, M, const N: usize> AddAssign for Point<E, M, N>
 where
     M: Modulus<N>,
+    E: EllipticCurve<M, N>,
     [(); 2 * N]:,
 {
     #[inline]
@@ -218,8 +225,10 @@ where
     }
 }
 
-impl<E: EllipticCurve<M, N>, M: Modulus<N>, const N: usize> Mul<BUint<N>> for Point<E, M, N>
+impl<E, M, const N: usize> Mul<BUint<N>> for Point<E, M, N>
 where
+    M: Modulus<N>,
+    E: EllipticCurve<M, N>,
     [(); 2 * N]:,
 {
     type Output = Self;

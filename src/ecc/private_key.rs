@@ -13,8 +13,11 @@ use hmac::digest::HashMarker;
 use hmac::{Hmac, Mac};
 use std::marker::PhantomData;
 
-pub struct PrivateKey<E: EllipticCurve<M, N>, M: Modulus<N>, const N: usize, H>
+pub struct PrivateKey<E, M, const N: usize, H>
 where
+    M: Modulus<N>,
+    E: EllipticCurve<M, N>,
+    [(); 2 * N]:,
     H: CoreProxy,
     H::Core: HashMarker
         + UpdateCore
@@ -24,15 +27,20 @@ where
         + Clone,
     <H::Core as BlockSizeUser>::BlockSize: IsLess<U256>,
     Le<<H::Core as BlockSizeUser>::BlockSize, U256>: NonZero,
-    [(); 2 * N]:,
 {
     secret: FieldElement<M, N>,
     point: Point<E, M, N>,
     _marker: PhantomData<H>,
 }
 
-impl<E: EllipticCurve<M, N>, M: Modulus<N>, const N: usize, H> PrivateKey<E, M, N, H>
+impl<E, M, const N: usize, H> PrivateKey<E, M, N, H>
 where
+    M: Modulus<N>,
+    E: EllipticCurve<M, N>,
+    [(); 2 * N]:,
+    [(); N / 8]:,
+    [(); BUint::<N>::BYTES_USIZE]:,
+    [(); 4 * N]:,
     H: CoreProxy,
     H::Core: HashMarker
         + UpdateCore
@@ -42,10 +50,6 @@ where
         + Clone,
     <H::Core as BlockSizeUser>::BlockSize: IsLess<U256>,
     Le<<H::Core as BlockSizeUser>::BlockSize, U256>: NonZero,
-    [(); 2 * N]:,
-    [(); N / 8]:,
-    [(); BUint::<N>::BYTES_USIZE]:,
-    [(); 4 * N]:,
 {
     #[inline]
     pub fn new(secret: FieldElement<M, N>) -> Self {
